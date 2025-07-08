@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام طلب المعجنات</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f7fafc;
+        }
+        .card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .quantity-btn {
+            transition: background-color 0.2s;
+        }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 text-gray-800">
+
+    <!-- Main Container -->
+    <div id="app-container" class="container mx-auto p-4 md:p-8 max-w-7xl">
+
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-5xl font-bold text-teal-600">نظام طلبات المعجنات</h1>
+            <p class="text-gray-500 mt-2">اختر طلبك بسهولة ودقة</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            <!-- Ordering Section (Right) -->
+            <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-teal-700">1. قم بإنشاء طلب جديد</h2>
+                
+                <!-- Employee Selection -->
+                <div class="mb-6">
+                    <label for="employee-select" class="block text-lg font-medium text-gray-700 mb-2">اختر اسم الموظف:</label>
+                    <select id="employee-select" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                        <option value="">-- الرجاء اختيار اسم --</option>
+                    </select>
+                </div>
+
+                <!-- Menu Items -->
+                <div class="mb-6 relative">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-700">قائمة المعجنات:</h3>
+                    <!-- Overlay to disable menu -->
+                    <div id="menu-overlay" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10 rounded-lg">
+                        <p class="text-lg font-bold text-teal-700 p-4 text-center">الرجاء اختيار اسم الموظف أولاً لتفعيل القائمة</p>
+                    </div>
+                    <div id="menu-items" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                        <!-- Menu items will be injected here by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Current Order Summary -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="text-xl font-semibold mb-3">ملخص الطلب الحالي:</h3>
+                    <div id="current-order-summary">
+                        <p class="text-gray-500">لم يتم اختيار أي صنف بعد.</p>
+                    </div>
+                    <div class="mt-4 text-2xl font-bold text-right">
+                        الإجمالي: <span id="current-total" class="text-teal-600">0</span> ل.س
+                    </div>
+                </div>
+                
+                <!-- Action Button -->
+                <div class="mt-6 text-center">
+                    <button id="submit-order-btn" class="w-full md:w-auto bg-teal-600 text-white font-bold py-3 px-10 rounded-lg hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-transform transform hover:scale-105 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                        إضافة الطلب
+                    </button>
+                </div>
+            </div>
+
+            <!-- Orders and Totals Section (Left) -->
+            <div class="lg:col-span-1 space-y-8">
+                <!-- All Orders -->
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-teal-700">2. جميع الطلبات</h2>
+                    <div id="orders-list" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                         <p class="text-gray-500 text-center py-4">لا توجد طلبات مسجلة حالياً.</p>
+                    </div>
+                </div>
+
+                <!-- Item Summary Section -->
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-teal-700">3. ملخص الأصناف</h2>
+                    <div id="items-summary-list" class="space-y-2 max-h-[40vh] overflow-y-auto pr-2">
+                        <p class="text-gray-500 text-center py-4">لا توجد طلبات لحساب الملخص.</p>
+                    </div>
+                </div>
+                
+                <!-- Grand Total -->
+                <div class="bg-white p-6 rounded-xl shadow-lg text-center">
+                    <h2 class="text-2xl font-bold mb-3 text-teal-700">المجموع الكلي</h2>
+                    <div id="grand-total-details" class="text-lg space-y-1 border-b pb-3 mb-3">
+                        <!-- Grand total breakdown will be injected here -->
+                    </div>
+                    <div id="grand-total" class="text-4xl font-extrabold text-teal-600">0 ل.س</div>
+                    <button id="clear-all-btn" class="mt-4 bg-red-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-transform transform hover:scale-105">
+                        مسح جميع الطلبات
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmation-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white p-8 rounded-lg shadow-2xl text-center max-w-sm mx-4">
+            <h3 class="text-xl font-bold mb-4" id="modal-title">تأكيد العملية</h3>
+            <p id="modal-message" class="text-gray-600 mb-6">هل أنت متأكد؟</p>
+            <div class="flex justify-center gap-4">
+                <button id="confirm-btn" class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700">نعم، تأكيد</button>
+                <button id="cancel-btn" class="bg-gray-300 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-400">إلغاء</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Firebase and App Logic -->
+    <script type="module">
+        // Firebase Imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, onSnapshot, deleteDoc, writeBatch, query, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBvUPrmVFD2kUDYUjx99yxklkWcd1RjcuM",
+            authDomain: "my-pastry-app.firebaseapp.com",
+            projectId: "my-pastry-app",
+            storageBucket: "my-pastry-app.firebasestorage.app",
+            messagingSenderId: "905005872621",
+            appId: "1:905005872621:web:8ae8407c6cc1d71fef23e4"
+        };
+
+        // --- CONSTANTS ---
+        const DELIVERY_COST = 5000;
+
+        // --- DATA ---
+        const menuData = [
+            { id: 'zaytoon', name: 'زيتون', price: 2500 },
+            { id: 'murtadella_qashqawan', name: 'مرتديلا قشقوان', price: 5000 },
+            { id: 'jibneh', name: 'جبنة', price: 1500 },
+            { id: 'mhammara', name: 'محمرة', price: 1500 },
+            { id: 'mhammara_qashqawan', name: 'محمرة قشقوان', price: 3500 },
+            { id: 'murtadella', name: 'مرتديلا', price: 3500 },
+            { id: 'kiri', name: 'كيري', price: 2500 },
+            { id: 'toshka', name: 'توشكا', price: 6000 },
+            { id: 'sujuk', name: 'سجق', price: 4000 },
+            { id: 'qashqawan', name: 'قشقوان', price: 3000 },
+            { id: 'zaatar_qashqawan', name: 'زعتر قشقوان', price: 5000 },
+            { id: 'shish', name: 'شيش', price: 7000 },
+            { id: 'sabanekh', name: 'سبانخ', price: 1500 },
+            { id: 'kebab', name: 'كباب', price: 4000 },
+            { id: 'pizza', name: 'بيتزا', price: 3500 },
+            { id: 'zaatar', name: 'زعتر', price: 1500 },
+        ];
+
+        const employeeNames = [
+            'أب معتز', 'وسام', 'رنيم', 'حلا', 'عماد', 'إيمان', 'هالة', 'عماد (ورد)', 'بشرى', 'اكرم', 'حمزة', 'ابااااا حمزةة', 'لين', 'بشر', 'كريم', 'كنان', 'معاذ', 'علا', 'أبو ناصر', 'ماهر'
+        ];
+
+        // --- STATE ---
+        let currentOrder = {}; // { itemId: quantity, ... }
+        let db;
+        let auth;
+        let ordersCollectionRef;
+        let isAuthReady = false;
+
+        // --- UI ELEMENTS ---
+        const appContainer = document.getElementById('app-container');
+        const employeeSelect = document.getElementById('employee-select');
+        const menuItemsContainer = document.getElementById('menu-items');
+        const menuOverlay = document.getElementById('menu-overlay');
+        const currentOrderSummary = document.getElementById('current-order-summary');
+        const currentTotalEl = document.getElementById('current-total');
+        const submitOrderBtn = document.getElementById('submit-order-btn');
+        const ordersList = document.getElementById('orders-list');
+        const itemsSummaryList = document.getElementById('items-summary-list');
+        const grandTotalEl = document.getElementById('grand-total');
+        const grandTotalDetailsEl = document.getElementById('grand-total-details');
+        const clearAllBtn = document.getElementById('clear-all-btn');
+        const modal = document.getElementById('confirmation-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalMessage = document.getElementById('modal-message');
+        const confirmBtn = document.getElementById('confirm-btn');
+        const cancelBtn = document.getElementById('cancel-btn');
+
+        // --- FIREBASE SETUP ---
+        async function setupFirebase() {
+            try {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                
+                const appId = firebaseConfig.projectId || 'default-pastry-app';
+                ordersCollectionRef = collection(db, `artifacts/${appId}/public/data/pastry-orders`);
+
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        console.log("User is signed in:", user.uid);
+                        isAuthReady = true;
+                        listenForOrders();
+                    } else {
+                        isAuthReady = false;
+                        try {
+                           await signInAnonymously(auth);
+                        } catch (authError) {
+                            console.error("Anonymous sign-in failed:", authError);
+                            alert("فشل تسجيل الدخول. قد لا تعمل المزامنة بشكل صحيح.");
+                        }
+                    }
+                });
+
+            } catch (error) {
+                console.error("Firebase initialization failed:", error);
+                alert("فشل الاتصال بـ Firebase. الرجاء التأكد من صحة الإعدادات في متغير firebaseConfig. الخطأ: " + error.message);
+            }
+        }
+
+        // --- RENDERING & UI LOGIC ---
+        function toggleMenuState() {
+            if (employeeSelect.value) {
+                menuOverlay.classList.add('hidden');
+            } else {
+                menuOverlay.classList.remove('hidden');
+            }
+        }
+
+        function renderMenuItems() {
+            menuItemsContainer.innerHTML = '';
+            menuData.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card bg-gray-50 border rounded-lg p-3 text-center';
+                card.innerHTML = `
+                    <h4 class="font-bold text-md">${item.name}</h4>
+                    <p class="text-sm text-gray-500 mb-2">${item.price.toLocaleString()} ل.س</p>
+                    <div class="flex items-center justify-center gap-2">
+                        <button data-id="${item.id}" class="quantity-btn minus-btn bg-red-500 text-white w-7 h-7 rounded-full font-bold">-</button>
+                        <span id="qty-${item.id}" class="text-lg font-bold w-8 text-center">0</span>
+                        <button data-id="${item.id}" class="quantity-btn plus-btn bg-green-500 text-white w-7 h-7 rounded-full font-bold">+</button>
+                    </div>
+                `;
+                menuItemsContainer.appendChild(card);
+            });
+        }
+
+        function renderEmployeeDropdown() {
+            employeeNames.sort((a, b) => a.localeCompare(b, 'ar')).forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                employeeSelect.appendChild(option);
+            });
+        }
+
+        function updateCurrentOrderDisplay() {
+            let total = 0;
+            currentOrderSummary.innerHTML = '';
+            const items = Object.keys(currentOrder);
+
+            if (items.length === 0) {
+                currentOrderSummary.innerHTML = '<p class="text-gray-500">لم يتم اختيار أي صنف بعد.</p>';
+                currentTotalEl.textContent = '0';
+                return;
+            }
+
+            const list = document.createElement('ul');
+            list.className = 'space-y-1';
+            
+            items.forEach(itemId => {
+                const quantity = currentOrder[itemId];
+                if (quantity > 0) {
+                    const itemData = menuData.find(m => m.id === itemId);
+                    const itemTotal = itemData.price * quantity;
+                    total += itemTotal;
+
+                    const listItem = document.createElement('li');
+                    listItem.className = 'flex justify-between items-center';
+                    listItem.innerHTML = `
+                        <span>${itemData.name} <span class="text-gray-500 text-sm">(x${quantity})</span></span>
+                        <span class="font-semibold">${itemTotal.toLocaleString()} ل.س</span>
+                    `;
+                    list.appendChild(listItem);
+                }
+            });
+            currentOrderSummary.appendChild(list);
+            currentTotalEl.textContent = total.toLocaleString();
+        }
+        
+        function renderAllOrders(orders, deliveryShare) {
+            ordersList.innerHTML = '';
+
+            if (orders.length === 0) {
+                ordersList.innerHTML = '<p class="text-gray-500 text-center py-4">لا توجد طلبات مسجلة حالياً.</p>';
+                return;
+            }
+            
+            orders.forEach(order => {
+                const orderTotalWithDelivery = order.total + deliveryShare;
+                const orderCard = document.createElement('div');
+                orderCard.className = 'bg-gray-50 p-4 rounded-lg border';
+                
+                let itemsHtml = '<ul class="text-sm space-y-1 mt-2">';
+                order.items.forEach(item => {
+                    itemsHtml += `<li class="flex justify-between"><span>${item.name} <span class="text-gray-500">(x${item.quantity})</span></span> <span>${(item.price * item.quantity).toLocaleString()} ل.س</span></li>`;
+                });
+                itemsHtml += '</ul>';
+
+                orderCard.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-bold text-lg text-teal-800">${order.employeeName}</h4>
+                        </div>
+                        <button data-id="${order.id}" class="delete-order-btn text-red-500 hover:text-red-700 text-xs">&times; حذف</button>
+                    </div>
+                    ${itemsHtml}
+                    <div class="mt-2 pt-2 border-t">
+                        <p class="font-semibold text-sm text-gray-600 flex justify-between"><span>إجمالي الطلب:</span> <span>${order.total.toLocaleString()} ل.س</span></p>
+                        <p class="font-semibold text-sm text-gray-600 flex justify-between"><span>حصة التوصيل:</span> <span>${deliveryShare.toLocaleString()} ل.س</span></p>
+                        <p class="font-bold text-md text-teal-600 mt-1 flex justify-between"><span>الإجمالي النهائي:</span> <span>${orderTotalWithDelivery.toLocaleString()} ل.س</span></p>
+                    </div>
+                `;
+                ordersList.appendChild(orderCard);
+            });
+        }
+        
+        function renderGrandTotal(orders) {
+             if (orders.length === 0) {
+                grandTotalDetailsEl.innerHTML = '';
+                grandTotalEl.textContent = '0 ل.س';
+                return;
+            }
+
+            const ordersSubtotal = orders.reduce((sum, order) => sum + order.total, 0);
+            const finalGrandTotal = ordersSubtotal + DELIVERY_COST;
+
+            grandTotalDetailsEl.innerHTML = `
+                <div class="flex justify-between"><span>مجموع الطلبات:</span> <span>${ordersSubtotal.toLocaleString()} ل.س</span></div>
+                <div class="flex justify-between"><span>تكلفة التوصيل:</span> <span>${DELIVERY_COST.toLocaleString()} ل.س</span></div>
+            `;
+            grandTotalEl.textContent = `${finalGrandTotal.toLocaleString()} ل.س`;
+        }
+
+        function renderItemsSummary(orders) {
+            const itemCounts = {};
+
+            orders.forEach(order => {
+                order.items.forEach(item => {
+                    if (itemCounts[item.name]) {
+                        itemCounts[item.name] += item.quantity;
+                    } else {
+                        itemCounts[item.name] = item.quantity;
+                    }
+                });
+            });
+
+            itemsSummaryList.innerHTML = ''; 
+
+            const sortedItems = Object.keys(itemCounts).sort((a, b) => a.localeCompare(b, 'ar'));
+
+            if (sortedItems.length === 0) {
+                itemsSummaryList.innerHTML = '<p class="text-gray-500 text-center py-4">لا توجد طلبات لحساب الملخص.</p>';
+                return;
+            }
+
+            const list = document.createElement('ul');
+            list.className = 'space-y-1';
+
+            sortedItems.forEach(itemName => {
+                const quantity = itemCounts[itemName];
+                const listItem = document.createElement('li');
+                listItem.className = 'flex justify-between items-center bg-gray-50 p-2 rounded-md';
+                listItem.innerHTML = `
+                    <span class="font-semibold text-gray-700">${itemName}</span>
+                    <span class="font-bold text-teal-600 text-lg">${quantity}</span>
+                `;
+                list.appendChild(listItem);
+            });
+
+            itemsSummaryList.appendChild(list);
+        }
+
+        // --- EVENT HANDLERS & LOGIC ---
+        function handleQuantityChange(event) {
+            const button = event.target.closest('.quantity-btn');
+            if (!button) return;
+
+            const itemId = button.dataset.id;
+            const isPlus = button.classList.contains('plus-btn');
+            
+            let currentQuantity = currentOrder[itemId] || 0;
+            
+            if (isPlus) {
+                currentQuantity++;
+            } else {
+                currentQuantity = Math.max(0, currentQuantity - 1);
+            }
+
+            if (currentQuantity === 0) {
+                delete currentOrder[itemId];
+            } else {
+                currentOrder[itemId] = currentQuantity;
+            }
+            
+            document.getElementById(`qty-${itemId}`).textContent = currentQuantity;
+            updateCurrentOrderDisplay();
+        }
+
+        function resetCurrentOrderForm() {
+            currentOrder = {};
+            updateCurrentOrderDisplay();
+            document.querySelectorAll('[id^="qty-"]').forEach(el => el.textContent = '0');
+            employeeSelect.value = '';
+            toggleMenuState(); // Re-disable menu after reset
+        }
+
+        async function handleSubmitOrder() {
+            const employeeName = employeeSelect.value;
+            if (!employeeName) {
+                showConfirmationModal({
+                    title: "خطأ",
+                    message: "الرجاء اختيار اسم الموظف أولاً.",
+                    confirmText: "موافق",
+                    showCancel: false
+                });
+                return;
+            }
+
+            const itemsInOrder = Object.entries(currentOrder)
+                .filter(([_, qty]) => qty > 0)
+                .map(([id, quantity]) => {
+                    const itemData = menuData.find(m => m.id === id);
+                    return { ...itemData, quantity };
+                });
+
+            if (itemsInOrder.length === 0) {
+                showConfirmationModal({
+                    title: "خطأ",
+                    message: "لا يمكنك إضافة طلب فارغ. الرجاء اختيار صنف واحد على الأقل.",
+                    confirmText: "موافق",
+                    showCancel: false
+                });
+                return;
+            }
+
+            const total = itemsInOrder.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            const newOrder = {
+                employeeName,
+                items: itemsInOrder,
+                total,
+                createdAt: new Date().toISOString()
+            };
+
+            submitOrderBtn.disabled = true;
+            submitOrderBtn.textContent = 'جاري الإضافة...';
+
+            try {
+                const orderDocRef = doc(ordersCollectionRef, employeeName);
+                await setDoc(orderDocRef, newOrder);
+                resetCurrentOrderForm();
+            } catch (error) {
+                console.error("Error adding document: ", error);
+                 showConfirmationModal({
+                    title: "خطأ",
+                    message: "حدث خطأ أثناء إضافة الطلب.",
+                    confirmText: "موافق",
+                    showCancel: false
+                });
+            } finally {
+                submitOrderBtn.disabled = false;
+                submitOrderBtn.textContent = 'إضافة الطلب';
+            }
+        }
+
+        async function handleDeleteOrder(event) {
+            const button = event.target.closest('.delete-order-btn');
+            if (!button) return;
+
+            const docId = button.dataset.id;
+            
+            showConfirmationModal({
+                title: "تأكيد الحذف",
+                message: `هل أنت متأكد من حذف طلب "${docId}"؟`,
+                callback: async (confirmed) => {
+                    if (confirmed) {
+                        try {
+                            await deleteDoc(doc(ordersCollectionRef, docId));
+                        } catch (error) {
+                            console.error("Error deleting document: ", error);
+                        }
+                    }
+                }
+            });
+        }
+        
+        function showConfirmationModal({title, message, confirmText = "نعم، تأكيد", cancelText = "إلغاء", showCancel = true, callback = () => {}}) {
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            confirmBtn.textContent = confirmText;
+            cancelBtn.textContent = cancelText;
+
+            if (showCancel) {
+                cancelBtn.classList.remove('hidden');
+            } else {
+                cancelBtn.classList.add('hidden');
+            }
+            
+            modal.classList.remove('hidden');
+            
+            const confirmHandler = () => {
+                callback(true);
+                hideModal();
+            };
+            
+            const cancelHandler = () => {
+                callback(false);
+                hideModal();
+            };
+
+            const hideModal = () => {
+                modal.classList.add('hidden');
+                confirmBtn.removeEventListener('click', confirmHandler);
+                cancelBtn.removeEventListener('click', cancelHandler);
+            };
+
+            confirmBtn.addEventListener('click', confirmHandler, { once: true });
+            cancelBtn.addEventListener('click', cancelHandler, { once: true });
+        }
+
+
+        async function handleClearAll() {
+            showConfirmationModal({
+                title: "تأكيد مسح الكل",
+                message: "هل أنت متأكد أنك تريد مسح جميع الطلبات؟ لا يمكن التراجع عن هذا الإجراء.",
+                callback: async (confirmed) => {
+                    if (confirmed) {
+                        clearAllBtn.disabled = true;
+                        clearAllBtn.textContent = 'جاري المسح...';
+                        try {
+                            const q = query(ordersCollectionRef);
+                            const querySnapshot = await getDocs(q);
+                            const batch = writeBatch(db);
+                            querySnapshot.forEach(doc => {
+                                batch.delete(doc.ref);
+                            });
+                            await batch.commit();
+                        } catch (error) {
+                            console.error("Error clearing all orders: ", error);
+                        } finally {
+                            clearAllBtn.disabled = false;
+                            clearAllBtn.textContent = 'مسح جميع الطلبات';
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- REAL-TIME LISTENER ---
+        function listenForOrders() {
+            if (!isAuthReady) {
+                console.log("Auth not ready, skipping listener setup.");
+                return;
+            }
+            onSnapshot(ordersCollectionRef, (snapshot) => {
+                const allOrders = [];
+                snapshot.forEach(doc => {
+                    allOrders.push({ id: doc.id, ...doc.data() });
+                });
+                allOrders.sort((a, b) => a.employeeName.localeCompare(b.employeeName, 'ar'));
+                
+                const deliveryShare = allOrders.length > 0 ? DELIVERY_COST / allOrders.length : 0;
+
+                renderAllOrders(allOrders, deliveryShare);
+                renderItemsSummary(allOrders);
+                renderGrandTotal(allOrders);
+
+            }, (error) => {
+                console.error("Error listening for orders:", error);
+                ordersList.innerHTML = `<p class="text-red-500">خطأ في تحميل الطلبات. الرجاء تحديث الصفحة.</p>`;
+            });
+        }
+
+        // --- INITIALIZATION ---
+        function init() {
+            renderMenuItems();
+            renderEmployeeDropdown();
+            toggleMenuState(); // Initial check to disable menu
+            
+            employeeSelect.addEventListener('change', toggleMenuState);
+            menuItemsContainer.addEventListener('click', handleQuantityChange);
+            submitOrderBtn.addEventListener('click', handleSubmitOrder);
+            ordersList.addEventListener('click', handleDeleteOrder);
+            clearAllBtn.addEventListener('click', handleClearAll);
+
+            setupFirebase();
+        }
+
+        // Start the app
+        init();
+
+    </script>
+</body>
+
+</html>
