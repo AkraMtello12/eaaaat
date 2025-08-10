@@ -188,8 +188,12 @@
                 db = getFirestore(app);
                 auth = getAuth(app);
                 
-                // **FIX:** Use the full, structured path required by the environment's security rules.
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-pastry-app';
+                // **FIX:** Prioritize the environment's __app_id, as security rules depend on it.
+                // Fallback to projectId for local testing or other environments.
+                const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
+                if (!appId) {
+                    throw new Error("Firebase App ID or Project ID is not defined.");
+                }
                 ordersCollectionRef = collection(db, `artifacts/${appId}/public/data/pastry-orders`);
 
                 onAuthStateChanged(auth, async (user) => {
@@ -332,8 +336,10 @@
             
             let currentPaidStatus = false;
             if (isUpdating) {
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) currentPaidStatus = docSnap.data().isPaid;
+                try {
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists()) currentPaidStatus = docSnap.data().isPaid;
+                } catch (e) { /* Ignore if doc doesn't exist yet */ }
             }
 
             const newOrder = { employeeName, items: itemsInOrder, total, isPaid: currentPaidStatus, createdAt: new Date().toISOString() };
