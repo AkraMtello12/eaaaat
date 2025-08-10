@@ -1,545 +1,871 @@
 <!DOCTYPE html>
+
 <html lang="ar" dir="rtl">
+
+
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام طلب المعجنات</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Cairo', sans-serif;
-            background-color: #f7fafc;
-        }
-        .card {
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-        .toast {
-            visibility: hidden;
-            opacity: 0;
-            transition: opacity 0.5s, visibility 0.5s, transform 0.5s;
-            transform: translateY(20px);
-        }
-        .toast.show {
-            visibility: visible;
-            opacity: 1;
-            transform: translateY(0);
-        }
-        /* Custom scrollbar for better aesthetics */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #a0aec0;
-        }
-    </style>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>نظام طلب المعجنات</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+
+        body {
+
+            font-family: 'Cairo', sans-serif;
+
+            background-color: #f7fafc;
+
+        }
+
+        .card {
+
+            transition: transform 0.2s, box-shadow 0.2s;
+
+        }
+
+        .card:hover {
+
+            transform: translateY(-5px);
+
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+        }
+
+        .toast {
+
+            visibility: hidden;
+
+            opacity: 0;
+
+            transition: opacity 0.5s, visibility 0.5s;
+
+        }
+
+        .toast.show {
+
+            visibility: visible;
+
+            opacity: 1;
+
+        }
+
+    </style>
+
 </head>
+
+
+
 <body class="bg-gray-100 text-gray-800">
 
-    <!-- Main Container -->
-    <div id="app-container" class="container mx-auto p-4 md:p-8 max-w-7xl">
 
-        <!-- Header -->
-        <header class="text-center mb-8">
-            <h1 class="text-3xl md:text-5xl font-extrabold text-teal-600">نظام طلبات المعجنات</h1>
-            <p class="text-gray-500 mt-2">اختر طلبك بسهولة ودقة</p>
-        </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Main Container -->
 
-            <!-- Ordering Section (Right) -->
-            <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-lg">
-                <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-teal-700">1. قم بإنشاء طلب جديد</h2>
-                
-                <!-- Employee Selection -->
-                <div class="mb-6">
-                    <label for="employee-select" class="block text-lg font-medium text-gray-700 mb-2">اختر اسم الموظف:</label>
-                    <select id="employee-select" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"></select>
-                </div>
+    <div id="app-container" class="container mx-auto p-4 md:p-8 max-w-7xl">
 
-                <!-- Menu Items -->
-                <div class="mb-6 relative">
-                    <h3 class="text-xl font-semibold mb-4 text-gray-700">قائمة المعجنات:</h3>
-                    <div id="menu-overlay" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10 rounded-lg">
-                        <p class="text-lg font-bold text-teal-700 p-4 text-center">الرجاء اختيار اسم الموظف أولاً لتفعيل القائمة</p>
-                    </div>
-                    <div id="menu-items" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"></div>
-                </div>
 
-                <!-- Current Order Summary -->
-                <div class="bg-gray-50 p-4 rounded-lg">
-                    <h3 class="text-xl font-semibold mb-3">ملخص الطلب الحالي:</h3>
-                    <div id="current-order-summary"><p class="text-gray-500">لم يتم اختيار أي صنف بعد.</p></div>
-                    <div class="mt-4 text-2xl font-bold text-right">
-                        الإجمالي: <span id="current-total" class="text-teal-600">0</span> ل.س
-                    </div>
-                </div>
-                
-                <!-- Action Button -->
-                <div class="mt-6 text-center">
-                    <button id="submit-order-btn" class="w-full md:w-auto bg-teal-600 text-white font-bold py-3 px-10 rounded-lg hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-transform transform hover:scale-105 disabled:bg-gray-400 disabled:cursor-not-allowed">
-                        إضافة الطلب
-                    </button>
-                </div>
-            </div>
 
-            <!-- Orders and Totals Section (Left) -->
-            <div class="lg:col-span-1 space-y-8">
-                <div class="bg-white p-6 rounded-xl shadow-lg">
-                    <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-teal-700">2. جميع الطلبات</h2>
-                    <div id="orders-list" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar"></div>
-                </div>
-                <div class="bg-white p-6 rounded-xl shadow-lg">
-                    <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-teal-700">3. ملخص الأصناف</h2>
-                    <div id="items-summary-list" class="space-y-2 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar"></div>
-                </div>
-                <div class="bg-white p-6 rounded-xl shadow-lg text-center">
-                    <h2 class="text-2xl font-bold mb-3 text-teal-700">المجموع الكلي</h2>
-                    <div id="grand-total-details" class="text-lg space-y-1 border-b pb-3 mb-3"></div>
-                    <div id="grand-total" class="text-4xl font-extrabold text-teal-600">0 ل.س</div>
-                    <button id="clear-all-btn" class="mt-4 bg-red-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">مسح جميع الطلبات</button>
-                </div>
-            </div>
-        </div>
-    </div>
+        <!-- Header -->
 
-    <!-- Confirmation Modal -->
-    <div id="confirmation-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center hidden z-50 p-4">
-        <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-sm text-center">
-            <p id="modal-text" class="text-lg mb-6">هل أنت متأكد؟</p>
-            <div class="flex justify-center gap-4">
-                <button id="modal-cancel-btn" class="px-6 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">إلغاء</button>
-                <button id="modal-confirm-btn" class="px-6 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700">تأكيد</button>
-            </div>
-        </div>
-    </div>
+        <header class="text-center mb-8">
 
-    <!-- Toast Notification -->
-    <div id="toast-notification" class="toast fixed bottom-5 left-5 py-3 px-6 rounded-lg shadow-lg z-50"></div>
-    
-    <!-- Firebase and App Logic -->
-    <script type="module">
-        // Firebase Imports
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, onSnapshot, deleteDoc, writeBatch, query, getDocs, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+            <h1 class="text-3xl md:text-5xl font-bold text-teal-600">نظام طلبات المعجنات</h1>
 
-        // --- CONFIGURATION ---
-        const DELIVERY_COST = 5000;
-        const menuData = [
-            { id: 'zaytoon', name: 'زيتون', price: 2500 }, { id: 'murtadella_qashqawan', name: 'مرتديلا قشقوان', price: 5000 }, { id: 'jibneh', name: 'جبنة', price: 1500 }, { id: 'mhammara', name: 'محمرة', price: 1500 }, { id: 'mhammara_qashqawan', name: 'محمرة قشقوان', price: 3500 }, { id: 'murtadella', name: 'مرتديلا', price: 3500 }, { id: 'kiri', name: 'كيري', price: 2500 }, { id: 'toshka', name: 'توشكا', price: 6000 }, { id: 'sujuk', name: 'سجق', price: 4000 }, { id: 'qashqawan', name: 'قشقوان', price: 3000 }, { id: 'zaatar_qashqawan', name: 'زعتر قشقوان', price: 5000 }, { id: 'shish', name: 'شيش', price: 7000 }, { id: 'sabanekh', name: 'سبانخ', price: 1500 }, { id: 'kebab', name: 'كباب', price: 4000 }, { id: 'pizza', name: 'بيتزا', price: 3500 }, { id: 'zaatar', name: 'زعتر', price: 1500 },
-        ];
-        const employeeNames = [
-            'أب معتز', 'وسام', 'رنيم', 'حلا', 'عماد', 'إيمان', 'هالة', 'عماد (ورد)', 'بشرى', 'اكرم', 'حمزة', 'ابااااا حمزةة', 'لين', 'بشر', 'كريم', 'كنان', 'معاذ', 'علا', 'أبو ناصر', 'ماهر', 'الاء', 'خالد', 'بُدورْ', 'علاء', 'رغد', 'ابو علي'
-        ];
+            <p class="text-gray-500 mt-2">اختر طلبك بسهولة ودقة</p>
 
-        // --- GLOBAL STATE ---
-        let currentOrder = {};
-        let db, auth, ordersCollectionRef, isAuthReady = false;
-        let onConfirmCallback = null;
+        </header>
 
-        // --- DOM ELEMENTS ---
-        const employeeSelect = document.getElementById('employee-select');
-        const menuItemsContainer = document.getElementById('menu-items');
-        const menuOverlay = document.getElementById('menu-overlay');
-        const currentOrderSummary = document.getElementById('current-order-summary');
-        const currentTotalEl = document.getElementById('current-total');
-        const submitOrderBtn = document.getElementById('submit-order-btn');
-        const ordersList = document.getElementById('orders-list');
-        const itemsSummaryList = document.getElementById('items-summary-list');
-        const grandTotalEl = document.getElementById('grand-total');
-        const grandTotalDetailsEl = document.getElementById('grand-total-details');
-        const clearAllBtn = document.getElementById('clear-all-btn');
-        const confirmationModal = document.getElementById('confirmation-modal');
-        const modalText = document.getElementById('modal-text');
-        const modalConfirmBtn = document.getElementById('modal-confirm-btn');
-        const modalCancelBtn = document.getElementById('modal-cancel-btn');
-        const toastNotification = document.getElementById('toast-notification');
-        
-        // --- FIREBASE SETUP ---
-        async function setupFirebase() {
-            try {
-                // Use environment variables for Firebase config if available
-                const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-                    // Fallback config if environment variables are not set
-                    apiKey: "YOUR_API_KEY",
-                    authDomain: "YOUR_AUTH_DOMAIN",
-                    projectId: "my-pastry-app",
-                    storageBucket: "YOUR_STORAGE_BUCKET",
-                    messagingSenderId: "YOUR_SENDER_ID",
-                    appId: "YOUR_APP_ID"
-                };
 
-                const app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-                
-                // **FIX:** Prioritize the environment's __app_id, as security rules depend on it.
-                // Fallback to projectId for local testing or other environments.
-                const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
-                if (!appId) {
-                    throw new Error("Firebase App ID or Project ID is not defined.");
-                }
-                ordersCollectionRef = collection(db, `artifacts/${appId}/public/data/pastry-orders`);
 
-                onAuthStateChanged(auth, async (user) => {
-                    if (user) {
-                        isAuthReady = true;
-                        listenForOrders();
-                    } else {
-                        isAuthReady = false;
-                        // Use custom token if provided by the environment, otherwise sign in anonymously
-                        if (typeof __initial_auth_token !== 'undefined') {
-                            await signInWithCustomToken(auth, __initial_auth_token);
-                        } else {
-                            await signInAnonymously(auth);
-                        }
-                    }
-                });
-            } catch (error) {
-                console.error("Firebase initialization failed:", error);
-                showToast("فشل الاتصال بالخدمة. يرجى تحديث الصفحة.", true);
-            }
-        }
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-        // --- UI & NOTIFICATION FUNCTIONS ---
-        function showToast(message, isError = false) {
-            toastNotification.textContent = message;
-            toastNotification.className = `toast fixed bottom-5 left-5 py-3 px-6 rounded-lg shadow-lg z-50 ${isError ? 'bg-red-600 text-white' : 'bg-green-500 text-white'}`;
-            toastNotification.classList.add('show');
-            setTimeout(() => {
-                toastNotification.classList.remove('show');
-            }, 3000);
-        }
 
-        function showConfirmationModal(message, onConfirm) {
-            modalText.textContent = message;
-            onConfirmCallback = onConfirm;
-            confirmationModal.classList.remove('hidden');
-        }
 
-        function hideConfirmationModal() {
-            confirmationModal.classList.add('hidden');
-            onConfirmCallback = null;
-        }
+            <!-- Ordering Section (Right) -->
 
-        function toggleMenuState() {
-            menuOverlay.classList.toggle('hidden', !!employeeSelect.value);
-        }
+            <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-lg">
 
-        // --- RENDER FUNCTIONS ---
-        function renderAllOrders(orders, deliveryShare) {
-            ordersList.innerHTML = orders.length === 0 ? '<p class="text-gray-500 text-center py-4">لا توجد طلبات مسجلة حالياً.</p>' : '';
-            orders.forEach(order => {
-                const orderTotalWithDelivery = order.total + deliveryShare;
-                const isPaid = order.isPaid || false;
-                const orderCard = document.createElement('div');
-                orderCard.className = `p-4 rounded-lg border transition-colors ${isPaid ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`;
-                
-                let itemsHtml = '<ul class="text-sm space-y-1 mt-2">';
-                order.items.forEach(item => itemsHtml += `<li class="flex justify-between"><span>${item.name} <span class="text-gray-500">(x${item.quantity})</span></span> <span>${(item.price * item.quantity).toLocaleString()} ل.س</span></li>`);
-                itemsHtml += '</ul>';
+                <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-teal-700">1. قم بإنشاء طلب جديد</h2>
 
-                orderCard.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <h4 class="font-bold text-lg ${isPaid ? 'text-green-800' : 'text-teal-800'}">${order.employeeName}</h4>
-                        <div class="flex gap-2">
-                            <button data-id="${order.id}" class="edit-order-btn text-blue-500 hover:text-blue-700 text-xs" title="تعديل">✏️</button>
-                            <button data-id="${order.id}" class="delete-order-btn text-red-500 hover:text-red-700 text-xs" title="حذف">🗑️</button>
-                        </div>
-                    </div>
-                    ${itemsHtml}
-                    <div class="mt-2 pt-2 border-t">
-                        <p class="font-semibold text-sm text-gray-600 flex justify-between"><span>إجمالي الطلب:</span> <span>${order.total.toLocaleString()} ل.س</span></p>
-                        <p class="font-semibold text-sm text-gray-600 flex justify-between"><span>حصة التوصيل:</span> <span>${deliveryShare.toLocaleString()} ل.س</span></p>
-                        <p class="font-bold text-md ${isPaid ? 'text-green-600' : 'text-teal-600'} mt-1 flex justify-between"><span>الإجمالي النهائي:</span> <span>${orderTotalWithDelivery.toLocaleString()} ل.س</span></p>
-                    </div>
-                    <button data-id="${order.id}" data-paid="${isPaid}" class="payment-status-btn w-full mt-3 p-2 text-sm font-bold rounded-lg ${isPaid ? 'bg-green-200 text-green-800' : 'bg-yellow-200 text-yellow-800'}">
-                        ${isPaid ? '✅ تم الدفع' : '💵 لم يدفع'}
-                    </button>
-                `;
-                ordersList.appendChild(orderCard);
-            });
-        }
-        
-        function updateCurrentOrderDisplay() {
-            let total = 0;
-            currentOrderSummary.innerHTML = '';
-            const items = Object.keys(currentOrder);
+                
 
-            if (items.length === 0) {
-                currentOrderSummary.innerHTML = '<p class="text-gray-500">لم يتم اختيار أي صنف بعد.</p>';
-            } else {
-                const list = document.createElement('ul');
-                list.className = 'space-y-1';
-                items.forEach(itemId => {
-                    const quantity = currentOrder[itemId];
-                    if (quantity > 0) {
-                        const itemData = menuData.find(m => m.id === itemId);
-                        total += itemData.price * quantity;
-                        const listItem = document.createElement('li');
-                        listItem.className = 'flex justify-between items-center';
-                        listItem.innerHTML = `<span>${itemData.name} <span class="text-gray-500 text-sm">(x${quantity})</span></span><span class="font-semibold">${(itemData.price * quantity).toLocaleString()} ل.س</span>`;
-                        list.appendChild(listItem);
-                    }
-                });
-                currentOrderSummary.appendChild(list);
-            }
-            currentTotalEl.textContent = total.toLocaleString();
-            
-            menuData.forEach(item => {
-                const qtyEl = document.getElementById(`qty-${item.id}`);
-                if(qtyEl) qtyEl.textContent = currentOrder[item.id] || 0;
-            });
-        }
+                <!-- Employee Selection -->
 
-        function resetCurrentOrderForm() {
-            currentOrder = {};
-            updateCurrentOrderDisplay();
-            employeeSelect.value = '';
-            submitOrderBtn.textContent = 'إضافة الطلب';
-            submitOrderBtn.removeAttribute('data-editing-id');
-            toggleMenuState();
-        }
+                <div class="mb-6">
 
-        // --- DATA HANDLING & EVENT LISTENERS ---
-        async function handleSubmitOrder() {
-            const employeeName = employeeSelect.value;
-            if (!employeeName) {
-                showToast("الرجاء اختيار اسم الموظف أولاً.", true);
-                return;
-            }
-            const itemsInOrder = Object.entries(currentOrder).filter(([_, qty]) => qty > 0).map(([id, quantity]) => ({ ...menuData.find(m => m.id === id), quantity }));
-            if (itemsInOrder.length === 0) {
-                showToast("لا يمكنك إضافة طلب فارغ.", true);
-                return;
-            }
-            
-            const total = itemsInOrder.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            const isUpdating = submitOrderBtn.hasAttribute('data-editing-id');
-            const docId = isUpdating ? submitOrderBtn.getAttribute('data-editing-id') : employeeName;
-            const docRef = doc(ordersCollectionRef, docId);
-            
-            let currentPaidStatus = false;
-            if (isUpdating) {
-                try {
-                    const docSnap = await getDoc(docRef);
-                    if (docSnap.exists()) currentPaidStatus = docSnap.data().isPaid;
-                } catch (e) { /* Ignore if doc doesn't exist yet */ }
-            }
+                    <label for="employee-select" class="block text-lg font-medium text-gray-700 mb-2">اختر اسم الموظف:</label>
 
-            const newOrder = { employeeName, items: itemsInOrder, total, isPaid: currentPaidStatus, createdAt: new Date().toISOString() };
-            
-            submitOrderBtn.disabled = true;
-            try {
-                await setDoc(docRef, newOrder, { merge: true });
-                showToast(`تم ${isUpdating ? 'تحديث' : 'إضافة'} طلب ${employeeName}`);
-                resetCurrentOrderForm();
-            } catch (error) {
-                console.error("Error adding/updating document: ", error);
-                showToast("فشل حفظ الطلب. قد تكون هناك مشكلة في صلاحيات قاعدة البيانات.", true);
-            } finally {
-                submitOrderBtn.disabled = false;
-            }
-        }
+                    <div class="flex flex-col sm:flex-row gap-2">
 
-        async function handleEditOrder(docId) {
-            try {
-                const orderDoc = await getDoc(doc(ordersCollectionRef, docId));
-                if (orderDoc.exists()) {
-                    const orderData = orderDoc.data();
-                    employeeSelect.value = orderData.employeeName;
-                    toggleMenuState();
-                    currentOrder = {};
-                    orderData.items.forEach(item => {
-                        currentOrder[item.id] = item.quantity;
-                    });
-                    updateCurrentOrderDisplay();
-                    submitOrderBtn.textContent = "تحديث الطلب";
-                    submitOrderBtn.setAttribute('data-editing-id', docId);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                }
-            } catch (error) {
-                 console.error("Error fetching document for edit: ", error);
-                 showToast("فشل جلب الطلب للتعديل.", true);
-            }
-        }
+                        <select id="employee-select" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"></select>
 
-        function listenForOrders() {
-            if (!isAuthReady) return;
-            onSnapshot(query(ordersCollectionRef), (snapshot) => {
-                const allOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                allOrders.sort((a, b) => a.employeeName.localeCompare(b.employeeName, 'ar'));
-                
-                const deliveryShare = allOrders.length > 0 ? Math.round(DELIVERY_COST / allOrders.length) : 0;
-                
-                renderAllOrders(allOrders, deliveryShare);
+                    </div>
 
-                // Update Grand Total
-                if (allOrders.length === 0) {
-                    grandTotalDetailsEl.innerHTML = '';
-                    grandTotalEl.textContent = '0 ل.س';
-                } else {
-                    const ordersSubtotal = allOrders.reduce((sum, order) => sum + order.total, 0);
-                    const finalGrandTotal = ordersSubtotal + DELIVERY_COST;
-                    grandTotalDetailsEl.innerHTML = `
-                        <div class="flex justify-between"><span>مجموع الطلبات:</span> <span>${ordersSubtotal.toLocaleString()} ل.س</span></div>
-                        <div class="flex justify-between"><span>تكلفة التوصيل:</span> <span>${DELIVERY_COST.toLocaleString()} ل.س</span></div>
-                    `;
-                    grandTotalEl.textContent = `${finalGrandTotal.toLocaleString()} ل.س`;
-                }
+                </div>
 
-                // Update Items Summary
-                const itemCounts = {};
-                allOrders.forEach(order => {
-                    order.items.forEach(item => {
-                        itemCounts[item.name] = (itemCounts[item.name] || 0) + item.quantity;
-                    });
-                });
-                itemsSummaryList.innerHTML = '';  
-                const sortedItems = Object.keys(itemCounts).sort((a, b) => a.localeCompare(b, 'ar'));
-                if (sortedItems.length === 0) {
-                    itemsSummaryList.innerHTML = '<p class="text-gray-500 text-center py-4">لا توجد طلبات لحساب الملخص.</p>';
-                } else {
-                    const list = document.createElement('ul');
-                    list.className = 'space-y-1';
-                    sortedItems.forEach(itemName => {
-                        const listItem = document.createElement('li');
-                        listItem.className = 'flex justify-between items-center bg-gray-50 p-2 rounded-md';
-                        listItem.innerHTML = `<span class="font-semibold text-gray-700">${itemName}</span><span class="font-bold text-teal-600 text-lg">${itemCounts[itemName]}</span>`;
-                        list.appendChild(listItem);
-                    });
-                    itemsSummaryList.appendChild(list);
-                }
-            }, (error) => {
-                console.error("Snapshot listener error:", error);
-                showToast("خطأ في تحديث البيانات. تحقق من اتصالك بالإنترنت.", true);
-            });
-        }
 
-        // --- INITIALIZATION ---
-        function init() {
-            // Populate employee dropdown
-            employeeSelect.innerHTML = '<option value="">-- الرجاء اختيار اسم --</option>';
-            employeeNames.sort((a, b) => a.localeCompare(b, 'ar')).forEach(name => {
-                const option = document.createElement('option');
-                option.value = name;
-                option.textContent = name;
-                employeeSelect.appendChild(option);
-            });
 
-            // Render menu item cards
-            menuItemsContainer.innerHTML = '';
-            menuData.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'card bg-gray-50 border rounded-lg p-3 text-center';
-                card.innerHTML = `<h4 class="font-bold text-md">${item.name}</h4><p class="text-sm text-gray-500 mb-2">${item.price.toLocaleString()} ل.س</p><div class="flex items-center justify-center gap-2"><button data-id="${item.id}" class="quantity-btn minus-btn bg-red-500 text-white w-7 h-7 rounded-full font-bold">-</button><span id="qty-${item.id}" class="text-lg font-bold w-8 text-center">0</span><button data-id="${item.id}" class="quantity-btn plus-btn bg-green-500 text-white w-7 h-7 rounded-full font-bold">+</button></div>`;
-                menuItemsContainer.appendChild(card);
-            });
+                <!-- Menu Items -->
 
-            // --- EVENT LISTENERS ---
-            employeeSelect.addEventListener('change', () => {
-                toggleMenuState();
-                if (submitOrderBtn.hasAttribute('data-editing-id')) {
-                    resetCurrentOrderForm();
-                }
-            });
+                <div class="mb-6 relative">
 
-            menuItemsContainer.addEventListener('click', (e) => {
-                const button = e.target.closest('.quantity-btn');
-                if (!button || !employeeSelect.value) {
-                    if(!employeeSelect.value) showToast("الرجاء اختيار الموظف أولاً", true);
-                    return;
-                };
-                const itemId = button.dataset.id;
-                let qty = currentOrder[itemId] || 0;
-                if (button.classList.contains('plus-btn')) qty++;
-                else qty = Math.max(0, qty - 1);
-                
-                if (qty === 0) delete currentOrder[itemId];
-                else currentOrder[itemId] = qty;
-                
-                updateCurrentOrderDisplay();
-            });
+                    <h3 class="text-xl font-semibold mb-4 text-gray-700">قائمة المعجنات:</h3>
 
-            submitOrderBtn.addEventListener('click', handleSubmitOrder);
+                    <div id="menu-overlay" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10 rounded-lg">
 
-            ordersList.addEventListener('click', async (e) => {
-                const editBtn = e.target.closest('.edit-order-btn');
-                if (editBtn) {
-                    await handleEditOrder(editBtn.dataset.id);
-                }
+                        <p class="text-lg font-bold text-teal-700 p-4 text-center">الرجاء اختيار اسم الموظف أولاً لتفعيل القائمة</p>
 
-                const deleteBtn = e.target.closest('.delete-order-btn');
-                if (deleteBtn) {
-                    showConfirmationModal(`هل أنت متأكد من حذف طلب "${deleteBtn.dataset.id}"؟`, async () => {
-                        try {
-                           await deleteDoc(doc(ordersCollectionRef, deleteBtn.dataset.id));
-                           showToast("تم حذف الطلب بنجاح.");
-                        } catch(error) {
-                            console.error("Error deleting document: ", error);
-                            showToast("فشل حذف الطلب.", true);
-                        }
-                    });
-                }
+                    </div>
 
-                const paymentBtn = e.target.closest('.payment-status-btn');
-                if (paymentBtn) {
-                    const currentStatus = paymentBtn.dataset.paid === 'true';
-                    try {
-                        await updateDoc(doc(ordersCollectionRef, paymentBtn.dataset.id), { isPaid: !currentStatus });
-                    } catch(error) {
-                        console.error("Error updating payment status: ", error);
-                        showToast("فشل تحديث حالة الدفع.", true);
-                    }
-                }
-            });
+                    <div id="menu-items" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"></div>
 
-            clearAllBtn.addEventListener('click', () => {
-                showConfirmationModal("هل أنت متأكد أنك تريد مسح جميع الطلبات؟ لا يمكن التراجع عن هذا الإجراء.", async () => {
-                    const q = query(ordersCollectionRef);
-                    try {
-                        const snapshot = await getDocs(q);
-                        const batch = writeBatch(db);
-                        snapshot.forEach(doc => batch.delete(doc.ref));
-                        await batch.commit();
-                        showToast("تم مسح جميع الطلبات بنجاح.");
-                    } catch(error) {
-                        console.error("Error clearing all documents: ", error);
-                        showToast("فشل مسح جميع الطلبات.", true);
-                    }
-                });
-            });
+                </div>
 
-            modalConfirmBtn.addEventListener('click', () => {
-                if (onConfirmCallback) {
-                    onConfirmCallback();
-                }
-                hideConfirmationModal();
-            });
 
-            modalCancelBtn.addEventListener('click', hideConfirmationModal);
-            
-            toggleMenuState();
-            setupFirebase();
-        }
 
-        // Start the application
-        init();
-    </script>
+                <!-- Current Order Summary -->
+
+                <div class="bg-gray-50 p-4 rounded-lg">
+
+                    <h3 class="text-xl font-semibold mb-3">ملخص الطلب الحالي:</h3>
+
+                    <div id="current-order-summary"><p class="text-gray-500">لم يتم اختيار أي صنف بعد.</p></div>
+
+                    <div class="mt-4 text-2xl font-bold text-right">
+
+                        الإجمالي: <span id="current-total" class="text-teal-600">0</span> ل.س
+
+                    </div>
+
+                </div>
+
+                
+
+                <!-- Action Button -->
+
+                <div class="mt-6 text-center">
+
+                    <button id="submit-order-btn" class="w-full md:w-auto bg-teal-600 text-white font-bold py-3 px-10 rounded-lg hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-transform transform hover:scale-105 disabled:bg-gray-400 disabled:cursor-not-allowed">
+
+                        إضافة الطلب
+
+                    </button>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- Orders and Totals Section (Left) -->
+
+            <div class="lg:col-span-1 space-y-8">
+
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+
+                    <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-teal-700">2. جميع الطلبات</h2>
+
+                    <div id="orders-list" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2"></div>
+
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+
+                    <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-teal-700">3. ملخص الأصناف</h2>
+
+                    <div id="items-summary-list" class="space-y-2 max-h-[40vh] overflow-y-auto pr-2"></div>
+
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-lg text-center">
+
+                    <h2 class="text-2xl font-bold mb-3 text-teal-700">المجموع الكلي</h2>
+
+                    <div id="grand-total-details" class="text-lg space-y-1 border-b pb-3 mb-3"></div>
+
+                    <div id="grand-total" class="text-4xl font-extrabold text-teal-600">0 ل.س</div>
+
+                    <button id="clear-all-btn" class="mt-4 bg-red-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-red-700">مسح جميع الطلبات</button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- Confirmation Modal & Toast -->
+
+    <div id="confirmation-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50"></div>
+
+    <div id="toast-notification" class="toast fixed bottom-5 left-5 bg-green-500 text-white py-3 px-6 rounded-lg shadow-lg"></div>
+
+    
+
+    <!-- Firebase and App Logic -->
+
+    <script type="module">
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        import { getFirestore, collection, doc, setDoc, onSnapshot, deleteDoc, writeBatch, query, getDocs, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+
+
+        const firebaseConfig = {
+
+            apiKey: "AIzaSyBvUPrmVFD2kUDYUjx99yxklkWcd1RjcuM",
+
+            authDomain: "my-pastry-app.firebaseapp.com",
+
+            projectId: "my-pastry-app",
+
+            storageBucket: "my-pastry-app.firebasestorage.app",
+
+            messagingSenderId: "905005872621",
+
+            appId: "1:905005872621:web:8ae8407c6cc1d71fef23e4"
+
+        };
+
+
+
+        const DELIVERY_COST = 5000;
+
+        const menuData = [
+
+            { id: 'zaytoon', name: 'زيتون', price: 2500 }, { id: 'murtadella_qashqawan', name: 'مرتديلا قشقوان', price: 5000 }, { id: 'jibneh', name: 'جبنة', price: 1500 }, { id: 'mhammara', name: 'محمرة', price: 1500 }, { id: 'mhammara_qashqawan', name: 'محمرة قشقوان', price: 3500 }, { id: 'murtadella', name: 'مرتديلا', price: 3500 }, { id: 'kiri', name: 'كيري', price: 2500 }, { id: 'toshka', name: 'توشكا', price: 6000 }, { id: 'sujuk', name: 'سجق', price: 4000 }, { id: 'qashqawan', name: 'قشقوان', price: 3000 }, { id: 'zaatar_qashqawan', name: 'زعتر قشقوان', price: 5000 }, { id: 'shish', name: 'شيش', price: 7000 }, { id: 'sabanekh', name: 'سبانخ', price: 1500 }, { id: 'kebab', name: 'كباب', price: 4000 }, { id: 'pizza', name: 'بيتزا', price: 3500 }, { id: 'zaatar', name: 'زعتر', price: 1500 },
+
+        ];
+
+        const employeeNames = [
+
+            'أب معتز', 'وسام', 'رنيم', 'حلا', 'عماد', 'إيمان', 'هالة', 'عماد (ورد)', 'بشرى', 'اكرم', 'حمزة', 'ابااااا حمزةة', 'لين', 'بشر', 'كريم', 'كنان', 'معاذ', 'علا', 'أبو ناصر', 'ماهر', 'الاء', 'خالد', 'بُدورْ', 'علاء', 'رغد', 'ابو علي'
+
+        ];
+
+
+
+        let currentOrder = {};
+
+        let db, auth, ordersCollectionRef, isAuthReady = false;
+
+
+
+        const employeeSelect = document.getElementById('employee-select');
+
+        const menuItemsContainer = document.getElementById('menu-items');
+
+        const menuOverlay = document.getElementById('menu-overlay');
+
+        const currentOrderSummary = document.getElementById('current-order-summary');
+
+        const currentTotalEl = document.getElementById('current-total');
+
+        const submitOrderBtn = document.getElementById('submit-order-btn');
+
+        const ordersList = document.getElementById('orders-list');
+
+        const itemsSummaryList = document.getElementById('items-summary-list');
+
+        const grandTotalEl = document.getElementById('grand-total');
+
+        const grandTotalDetailsEl = document.getElementById('grand-total-details');
+
+        const clearAllBtn = document.getElementById('clear-all-btn');
+
+        const confirmationModal = document.getElementById('confirmation-modal');
+
+        const toastNotification = document.getElementById('toast-notification');
+
+
+
+        function toggleMenuState() {
+
+            if (employeeSelect.value) {
+
+                menuOverlay.classList.add('hidden');
+
+            } else {
+
+                menuOverlay.classList.remove('hidden');
+
+            }
+
+        }
+
+
+
+        async function setupFirebase() {
+
+            try {
+
+                const app = initializeApp(firebaseConfig);
+
+                db = getFirestore(app);
+
+                auth = getAuth(app);
+
+                const appId = firebaseConfig.projectId || 'default-pastry-app';
+
+                ordersCollectionRef = collection(db, `artifacts/${appId}/public/data/pastry-orders`);
+
+
+
+                onAuthStateChanged(auth, async (user) => {
+
+                    if (user) {
+
+                        isAuthReady = true;
+
+                        listenForOrders();
+
+                    } else {
+
+                        isAuthReady = false;
+
+                        await signInAnonymously(auth).catch(err => console.error("Anonymous sign-in failed:", err));
+
+                    }
+
+                });
+
+            } catch (error) {
+
+                console.error("Firebase initialization failed:", error);
+
+                alert("فشل الاتصال بـ Firebase.");
+
+            }
+
+        }
+
+        
+
+        function showToast(message) {
+
+            toastNotification.textContent = message;
+
+            toastNotification.classList.add('show');
+
+            setTimeout(() => {
+
+                toastNotification.classList.remove('show');
+
+            }, 3000);
+
+        }
+
+
+
+        function renderAllOrders(orders, deliveryShare) {
+
+            ordersList.innerHTML = orders.length === 0 ? '<p class="text-gray-500 text-center py-4">لا توجد طلبات مسجلة حالياً.</p>' : '';
+
+            orders.forEach(order => {
+
+                const orderTotalWithDelivery = order.total + deliveryShare;
+
+                const isPaid = order.isPaid || false;
+
+                const orderCard = document.createElement('div');
+
+                orderCard.className = `p-4 rounded-lg border transition-colors ${isPaid ? 'bg-green-50' : 'bg-gray-50'}`;
+
+                
+
+                let itemsHtml = '<ul class="text-sm space-y-1 mt-2">';
+
+                order.items.forEach(item => itemsHtml += `<li class="flex justify-between"><span>${item.name} <span class="text-gray-500">(x${item.quantity})</span></span> <span>${(item.price * item.quantity).toLocaleString()} ل.س</span></li>`);
+
+                itemsHtml += '</ul>';
+
+
+
+                orderCard.innerHTML = `
+
+                    <div class="flex justify-between items-start">
+
+                        <h4 class="font-bold text-lg ${isPaid ? 'text-green-800' : 'text-teal-800'}">${order.employeeName}</h4>
+
+                        <div class="flex gap-2">
+
+                            <button data-id="${order.id}" class="edit-order-btn text-blue-500 hover:text-blue-700 text-xs">✏️</button>
+
+                            <button data-id="${order.id}" class="delete-order-btn text-red-500 hover:text-red-700 text-xs">🗑️</button>
+
+                        </div>
+
+                    </div>
+
+                    ${itemsHtml}
+
+                    <div class="mt-2 pt-2 border-t">
+
+                        <p class="font-semibold text-sm text-gray-600 flex justify-between"><span>إجمالي الطلب:</span> <span>${order.total.toLocaleString()} ل.س</span></p>
+
+                        <p class="font-semibold text-sm text-gray-600 flex justify-between"><span>حصة التوصيل:</span> <span>${deliveryShare.toLocaleString()} ل.س</span></p>
+
+                        <p class="font-bold text-md ${isPaid ? 'text-green-600' : 'text-teal-600'} mt-1 flex justify-between"><span>الإجمالي النهائي:</span> <span>${orderTotalWithDelivery.toLocaleString()} ل.س</span></p>
+
+                    </div>
+
+                    <button data-id="${order.id}" data-paid="${isPaid}" class="payment-status-btn w-full mt-3 p-2 text-sm font-bold rounded-lg ${isPaid ? 'bg-green-200 text-green-800' : 'bg-yellow-200 text-yellow-800'}">
+
+                        ${isPaid ? '✅ مدفوع' : '💵 لم يدفع'}
+
+                    </button>
+
+                `;
+
+                ordersList.appendChild(orderCard);
+
+            });
+
+        }
+
+        
+
+        function updateCurrentOrderDisplay() {
+
+            let total = 0;
+
+            currentOrderSummary.innerHTML = '';
+
+            const items = Object.keys(currentOrder);
+
+
+
+            if (items.length === 0) {
+
+                currentOrderSummary.innerHTML = '<p class="text-gray-500">لم يتم اختيار أي صنف بعد.</p>';
+
+                currentTotalEl.textContent = '0';
+
+            } else {
+
+                const list = document.createElement('ul');
+
+                list.className = 'space-y-1';
+
+                items.forEach(itemId => {
+
+                    const quantity = currentOrder[itemId];
+
+                    if (quantity > 0) {
+
+                        const itemData = menuData.find(m => m.id === itemId);
+
+                        total += itemData.price * quantity;
+
+                        const listItem = document.createElement('li');
+
+                        listItem.className = 'flex justify-between items-center';
+
+                        listItem.innerHTML = `<span>${itemData.name} <span class="text-gray-500 text-sm">(x${quantity})</span></span><span class="font-semibold">${(itemData.price * quantity).toLocaleString()} ل.س</span>`;
+
+                        list.appendChild(listItem);
+
+                    }
+
+                });
+
+                currentOrderSummary.appendChild(list);
+
+                currentTotalEl.textContent = total.toLocaleString();
+
+            }
+
+            
+
+            menuData.forEach(item => {
+
+                const qtyEl = document.getElementById(`qty-${item.id}`);
+
+                if(qtyEl) {
+
+                    qtyEl.textContent = currentOrder[item.id] || 0;
+
+                }
+
+            });
+
+        }
+
+        
+
+        function resetCurrentOrderForm() {
+
+            currentOrder = {};
+
+            updateCurrentOrderDisplay();
+
+            employeeSelect.value = '';
+
+            submitOrderBtn.textContent = 'إضافة الطلب';
+
+            toggleMenuState();
+
+        }
+
+        
+
+        async function handleSubmitOrder() {
+
+            const employeeName = employeeSelect.value;
+
+            if (!employeeName) {
+
+                alert("الرجاء اختيار اسم الموظف أولاً.");
+
+                return;
+
+            }
+
+            const itemsInOrder = Object.entries(currentOrder).filter(([_, qty]) => qty > 0).map(([id, quantity]) => ({ ...menuData.find(m => m.id === id), quantity }));
+
+            if (itemsInOrder.length === 0) {
+
+                alert("لا يمكنك إضافة طلب فارغ.");
+
+                return;
+
+            }
+
+            const total = itemsInOrder.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+            
+
+            const docRef = doc(ordersCollectionRef, employeeName);
+
+            const docSnap = await getDoc(docRef);
+
+            const isUpdating = docSnap.exists();
+
+            const currentPaidStatus = isUpdating ? docSnap.data().isPaid : false;
+
+
+
+            const newOrder = { employeeName, items: itemsInOrder, total, isPaid: currentPaidStatus, createdAt: new Date().toISOString() };
+
+            
+
+            submitOrderBtn.disabled = true;
+
+            try {
+
+                await setDoc(docRef, newOrder, { merge: true });
+
+                showToast(`تم ${isUpdating ? 'تحديث' : 'إضافة'} طلب ${employeeName}`);
+
+                resetCurrentOrderForm();
+
+            } catch (error) {
+
+                console.error("Error adding/updating document: ", error);
+
+            } finally {
+
+                submitOrderBtn.disabled = false;
+
+            }
+
+        }
+
+
+
+        async function handleEditOrder(event) {
+
+            const button = event.target.closest('.edit-order-btn');
+
+            if (!button) return;
+
+            const docId = button.dataset.id;
+
+            const orderDoc = await getDoc(doc(ordersCollectionRef, docId));
+
+            if (orderDoc.exists()) {
+
+                const orderData = orderDoc.data();
+
+                employeeSelect.value = orderData.employeeName;
+
+                toggleMenuState();
+
+                currentOrder = {};
+
+                orderData.items.forEach(item => {
+
+                    currentOrder[item.id] = item.quantity;
+
+                });
+
+                updateCurrentOrderDisplay();
+
+                submitOrderBtn.textContent = "تحديث الطلب";
+
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            }
+
+        }
+
+
+
+        async function handlePaymentStatus(event) {
+
+            const button = event.target.closest('.payment-status-btn');
+
+            if (!button) return;
+
+            const docId = button.dataset.id;
+
+            const currentStatus = button.dataset.paid === 'true';
+
+            await updateDoc(doc(ordersCollectionRef, docId), { isPaid: !currentStatus });
+
+        }
+
+
+
+        function listenForOrders() {
+
+            if (!isAuthReady) return;
+
+            onSnapshot(query(ordersCollectionRef), (snapshot) => {
+
+                const allOrders = [];
+
+                snapshot.forEach(doc => allOrders.push({ id: doc.id, ...doc.data() }));
+
+                allOrders.sort((a, b) => a.employeeName.localeCompare(b.employeeName, 'ar'));
+
+                
+
+                const deliveryShare = allOrders.length > 0 ? Math.round(DELIVERY_COST / allOrders.length) : 0;
+
+                
+
+                renderAllOrders(allOrders, deliveryShare);
+
+
+
+                if (allOrders.length === 0) {
+
+                    grandTotalDetailsEl.innerHTML = '';
+
+                    grandTotalEl.textContent = '0 ل.س';
+
+                } else {
+
+                    const ordersSubtotal = allOrders.reduce((sum, order) => sum + order.total, 0);
+
+                    const finalGrandTotal = ordersSubtotal + (deliveryShare * allOrders.length);
+
+                    grandTotalDetailsEl.innerHTML = `
+
+                        <div class="flex justify-between"><span>مجموع الطلبات:</span> <span>${ordersSubtotal.toLocaleString()} ل.س</span></div>
+
+                        <div class="flex justify-between"><span>تكلفة التوصيل:</span> <span>${DELIVERY_COST.toLocaleString()} ل.س</span></div>
+
+                    `;
+
+                    grandTotalEl.textContent = `${finalGrandTotal.toLocaleString()} ل.س`;
+
+                }
+
+
+
+                const itemCounts = {};
+
+                allOrders.forEach(order => {
+
+                    order.items.forEach(item => {
+
+                        itemCounts[item.name] = (itemCounts[item.name] || 0) + item.quantity;
+
+                    });
+
+                });
+
+                itemsSummaryList.innerHTML = ''; 
+
+                const sortedItems = Object.keys(itemCounts).sort((a, b) => a.localeCompare(b, 'ar'));
+
+                if (sortedItems.length === 0) {
+
+                    itemsSummaryList.innerHTML = '<p class="text-gray-500 text-center py-4">لا توجد طلبات لحساب الملخص.</p>';
+
+                } else {
+
+                    const list = document.createElement('ul');
+
+                    list.className = 'space-y-1';
+
+                    sortedItems.forEach(itemName => {
+
+                        const listItem = document.createElement('li');
+
+                        listItem.className = 'flex justify-between items-center bg-gray-50 p-2 rounded-md';
+
+                        listItem.innerHTML = `
+
+                            <span class="font-semibold text-gray-700">${itemName}</span>
+
+                            <span class="font-bold text-teal-600 text-lg">${itemCounts[itemName]}</span>
+
+                        `;
+
+                        list.appendChild(listItem);
+
+                    });
+
+                    itemsSummaryList.appendChild(list);
+
+                }
+
+            });
+
+        }
+
+
+
+        function init() {
+
+            employeeSelect.innerHTML = '<option value="">-- الرجاء اختيار اسم --</option>';
+
+            employeeNames.sort((a, b) => a.localeCompare(b, 'ar')).forEach(name => {
+
+                const option = document.createElement('option');
+
+                option.value = name;
+
+                option.textContent = name;
+
+                employeeSelect.appendChild(option);
+
+            });
+
+            menuItemsContainer.innerHTML = '';
+
+            menuData.forEach(item => {
+
+                const card = document.createElement('div');
+
+                card.className = 'card bg-gray-50 border rounded-lg p-3 text-center';
+
+                card.innerHTML = `<h4 class="font-bold text-md">${item.name}</h4><p class="text-sm text-gray-500 mb-2">${item.price.toLocaleString()} ل.س</p><div class="flex items-center justify-center gap-2"><button data-id="${item.id}" class="quantity-btn minus-btn bg-red-500 text-white w-7 h-7 rounded-full font-bold">-</button><span id="qty-${item.id}" class="text-lg font-bold w-8 text-center">0</span><button data-id="${item.id}" class="quantity-btn plus-btn bg-green-500 text-white w-7 h-7 rounded-full font-bold">+</button></div>`;
+
+                menuItemsContainer.appendChild(card);
+
+            });
+
+
+
+            employeeSelect.addEventListener('change', () => {
+
+                toggleMenuState();
+
+                currentOrder = {};
+
+                updateCurrentOrderDisplay();
+
+                submitOrderBtn.textContent = 'إضافة الطلب';
+
+            });
+
+            menuItemsContainer.addEventListener('click', (e) => {
+
+                const button = e.target.closest('.quantity-btn');
+
+                if (!button) return;
+
+                const itemId = button.dataset.id;
+
+                let qty = currentOrder[itemId] || 0;
+
+                if (button.classList.contains('plus-btn')) qty++;
+
+                else qty = Math.max(0, qty - 1);
+
+                if (qty === 0) delete currentOrder[itemId];
+
+                else currentOrder[itemId] = qty;
+
+                updateCurrentOrderDisplay();
+
+            });
+
+            submitOrderBtn.addEventListener('click', handleSubmitOrder);
+
+            ordersList.addEventListener('click', (e) => {
+
+                if (e.target.closest('.edit-order-btn')) handleEditOrder(e);
+
+                if (e.target.closest('.delete-order-btn')) { 
+
+                    const btn = e.target.closest('.delete-order-btn');
+
+                    if(confirm(`هل أنت متأكد من حذف طلب "${btn.dataset.id}"؟`)) {
+
+                        deleteDoc(doc(ordersCollectionRef, btn.dataset.id));
+
+                    }
+
+                }
+
+                if (e.target.closest('.payment-status-btn')) handlePaymentStatus(e);
+
+            });
+
+            clearAllBtn.addEventListener('click', async () => {
+
+                if (!confirm("هل أنت متأكد أنك تريد مسح جميع الطلبات؟ لا يمكن التراجع عن هذا الإجراء.")) return;
+
+                const q = query(ordersCollectionRef);
+
+                const snapshot = await getDocs(q);
+
+                const batch = writeBatch(db);
+
+                snapshot.forEach(doc => batch.delete(doc.ref));
+
+                await batch.commit();
+
+            });
+
+            
+
+            toggleMenuState();
+
+            setupFirebase();
+
+        }
+
+
+
+        init();
+
+    </script>
+
 </body>
+
 </html>
