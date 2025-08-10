@@ -175,26 +175,20 @@
             try {
                 // Use environment variables for Firebase config if available
                 const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-                    // Fallback config if environment variables are not set
-                    apiKey: "YOUR_API_KEY",
-                    authDomain: "YOUR_AUTH_DOMAIN",
+                    apiKey: "AIzaSyBvUPrmVFD2kUDYUjx99yxklkWcd1RjcuM",
+                    authDomain: "my-pastry-app.firebaseapp.com",
                     projectId: "my-pastry-app",
-                    storageBucket: "YOUR_STORAGE_BUCKET",
-                    messagingSenderId: "YOUR_SENDER_ID",
-                    appId: "YOUR_APP_ID"
+                    storageBucket: "my-pastry-app.appspot.com",
+                    messagingSenderId: "905005872621",
+                    appId: "1:905005872621:web:8ae8407c6cc1d71fef23e4"
                 };
 
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
                 
-                // **FIX:** Prioritize the environment's __app_id, as security rules depend on it.
-                // Fallback to projectId for local testing or other environments.
-                const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
-                if (!appId) {
-                    throw new Error("Firebase App ID or Project ID is not defined.");
-                }
-                ordersCollectionRef = collection(db, `artifacts/${appId}/public/data/pastry-orders`);
+                // **FINAL FIX:** Using a simple, direct collection name to avoid path issues.
+                ordersCollectionRef = collection(db, "pastry-orders");
 
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
@@ -202,7 +196,6 @@
                         listenForOrders();
                     } else {
                         isAuthReady = false;
-                        // Use custom token if provided by the environment, otherwise sign in anonymously
                         if (typeof __initial_auth_token !== 'undefined') {
                             await signInWithCustomToken(auth, __initial_auth_token);
                         } else {
